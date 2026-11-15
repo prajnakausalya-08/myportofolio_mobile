@@ -1,30 +1,100 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:myportofolio_mobile/main.dart';
+import 'package:myportofolio_mobile/menu.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Identitas dan menu ditampilkan tanpa error', (tester) async {
     await tester.pumpWidget(const MyApp());
+    expect(tester.takeException(), isNull);
+    expect(find.byType(InfoCard), findsNWidgets(3));
+    for (final text in [
+      'NPM',
+      '2506657213',
+      'Name',
+      'Prajna Kausalya Damdami',
+      'Class',
+      'PBP F',
+    ]) {
+      expect(find.text(text), findsOneWidget);
+    }
+    for (final item in MyHomePage.items) {
+      expect(find.text(item.name), findsOneWidget);
+      expect(find.byIcon(item.icon), findsOneWidget);
+    }
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets(
+    'Setiap kartu menampilkan SnackBar yang sesuai dan mengganti pesan sebelumnya',
+    (tester) async {
+      await tester.pumpWidget(const MyApp());
+      for (final item in MyHomePage.items) {
+        await tester.ensureVisible(find.text(item.name));
+        await tester.tap(find.text(item.name));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Kamu telah menekan tombol ${item.name}!'),
+          findsOneWidget,
+        );
+        for (final other in MyHomePage.items.where((other) => other != item)) {
+          expect(
+            find.text('Kamu telah menekan tombol ${other.name}!'),
+            findsNothing,
+          );
+        }
+      }
+    },
+  );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Warna dan ikon setiap kartu sesuai data menu', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    final expected = <String, (IconData, Color)>{
+      'Lihat Proyek': (Icons.folder, const Color(0xFF1565C0)),
+      'Tambah Proyek': (Icons.add_circle, const Color(0xFF2E7D32)),
+      'Logout': (Icons.logout, const Color(0xFFC62828)),
+    };
+    final colors = <Color>{};
+    for (final entry in expected.entries) {
+      final card = find.ancestor(
+        of: find.text(entry.key),
+        matching: find.byType(ItemCard),
+      );
+      final material = tester.widget<Material>(
+        find.descendant(of: card, matching: find.byType(Material)).first,
+      );
+      expect(material.color, entry.value.$2);
+      expect(
+        find.descendant(of: card, matching: find.byIcon(entry.value.$1)),
+        findsOneWidget,
+      );
+      colors.add(material.color!);
+    }
+    expect(colors.length, 3);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('Konten tetap dapat diakses pada layar kecil', (tester) async {
+    tester.view.physicalSize = const Size(320, 480);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const MyApp());
+    for (final item in MyHomePage.items) {
+      await tester.ensureVisible(find.text(item.name));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(
+        find.ancestor(
+          of: find.text(item.name),
+          matching: find.byType(ItemCard),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Kamu telah menekan tombol ${item.name}!'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+    }
   });
 }

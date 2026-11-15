@@ -1,97 +1,105 @@
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatelessWidget {
-  MyHomePage({super.key});
+  const MyHomePage({super.key});
 
-  final String npm = "2506657213";
-  final String nama = "Prajna Kausalya Damdami";
-  final String kelas = "PBP F";
-  final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Proyek", Icons.folder),
-    ItemHomepage("Tambah Proyek", Icons.add_circle),
-    ItemHomepage("Logout", Icons.logout),
+  static const items = [
+    ItemHomepage('Lihat Proyek', Icons.folder, Color(0xFF1565C0)),
+    ItemHomepage('Tambah Proyek', Icons.add_circle, Color(0xFF2E7D32)),
+    ItemHomepage('Logout', Icons.logout, Color(0xFFC62828)),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'MyPortfolio',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('MyPortfolio'),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                InfoCard(title: 'NPM', content: npm),
-                InfoCard(title: 'Nama', content: nama),
-                InfoCard(title: 'Class', content: kelas),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            Center(
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 16.0),
-                    child: Text(
-                      'Selamat datang di MyPortfolio Mobile!',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.0,
-                      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth < 400
+              ? 1
+              : constraints.maxWidth < 650
+              ? 2
+              : 3;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        InfoCard(title: 'NPM', content: '2506657213'),
+                        InfoCard(
+                          title: 'Name',
+                          content: 'Prajna Kausalya Damdami',
+                        ),
+                        InfoCard(title: 'Class', content: 'PBP F'),
+                      ],
                     ),
-                  ),
-                  GridView.count(
-                    primary: true,
-                    padding: const EdgeInsets.all(20),
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    children: items.map((ItemHomepage item) {
-                      return ItemCard(item);
-                    }).toList(),
-                  ),
-                ],
+                    const SizedBox(height: 32),
+                    Text(
+                      'Selamat datang di MyPortfolio Mobile!',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Pilih menu untuk menjelajahi portofolio.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    GridView.count(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: columns == 1 ? 2.4 : 1.5,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: items.map((item) => ItemCard(item)).toList(),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
 class InfoCard extends StatelessWidget {
+  const InfoCard({super.key, required this.title, required this.content});
+
   final String title;
   final String content;
 
-  const InfoCard({super.key, required this.title, required this.content});
-
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2.0,
-      child: Container(
-        width: MediaQuery.of(context).size.width / 3.5,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8.0),
-            Text(content),
-          ],
+    return SizedBox(
+      width: 260,
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(content),
+            ],
+          ),
         ),
       ),
     );
@@ -99,42 +107,50 @@ class InfoCard extends StatelessWidget {
 }
 
 class ItemHomepage {
+  const ItemHomepage(this.name, this.icon, this.color);
+
   final String name;
   final IconData icon;
-
-  ItemHomepage(this.name, this.icon);
+  final Color color;
 }
 
 class ItemCard extends StatelessWidget {
-  final ItemHomepage item;
-
   const ItemCard(this.item, {super.key});
+
+  final ItemHomepage item;
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(12);
     return Material(
-      color: Theme.of(context).colorScheme.secondary,
-      borderRadius: BorderRadius.circular(12),
+      color: item.color,
+      borderRadius: radius,
       child: InkWell(
+        borderRadius: radius,
         onTap: () {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!")),
+              SnackBar(
+                content: Text('Kamu telah menekan tombol ${item.name}!'),
+              ),
             );
         },
-        child: Container(
-          padding: const EdgeInsets.all(8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
           child: Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(item.icon, color: Colors.white, size: 30.0),
-                const Padding(padding: EdgeInsets.all(3)),
+                Icon(item.icon, color: Colors.white, size: 32),
+                const SizedBox(height: 8),
                 Text(
                   item.name,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
