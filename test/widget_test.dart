@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
 
 void main() {
@@ -54,9 +54,15 @@ void main() {
     expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField).at(0), 'Proyek Flutter');
-    await tester.enterText(find.byType(TextFormField).at(1), 'Deskripsi contoh');
+    await tester.enterText(
+      find.byType(TextFormField).at(1),
+      'Deskripsi contoh',
+    );
     await tester.enterText(find.byType(TextFormField).at(2), 'Flutter, Django');
-    await tester.enterText(find.byType(TextFormField).at(3), 'https://example.com');
+    await tester.enterText(
+      find.byType(TextFormField).at(3),
+      'https://example.com',
+    );
     await tester.tap(find.byType(DropdownButtonFormField<String>));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Mobile Development').last);
@@ -72,7 +78,9 @@ void main() {
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    for (final field in tester.widgetList<EditableText>(find.byType(EditableText))) {
+    for (final field in tester.widgetList<EditableText>(
+      find.byType(EditableText),
+    )) {
       expect(field.controller.text, isEmpty);
     }
     expect(find.text('Web Development'), findsOneWidget);
@@ -89,4 +97,144 @@ void main() {
     expect(find.text('Teknologi: '), findsOneWidget);
     expect(find.text('Tautan: '), findsOneWidget);
   });
+
+  testWidgets('Tambah Pendidikan dapat dibuka dari kartu dan kembali', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    expect(find.text('Tambah Pendidikan'), findsOneWidget);
+
+    await tester.tap(find.text('Tambah Pendidikan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nama Institusi / Sekolah'), findsOneWidget);
+    expect(find.text('Deskripsi Pendidikan'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('2506657213'), findsOneWidget);
+  });
+
+  testWidgets('Drawer membuka Education dan Home kembali ke halaman utama', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Add Project'), findsOneWidget);
+    expect(find.text('Add Education'), findsOneWidget);
+
+    await tester.tap(find.text('Add Education'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tambah Pendidikan'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    expect(find.text('2506657213'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Validasi Education menolak nilai tidak valid dan merangkum data',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(const MyApp());
+      await tester.tap(find.text('Tambah Pendidikan'));
+      await tester.pumpAndSettle();
+
+      final fields = find.byType(TextFormField);
+      expect(fields, findsNWidgets(5));
+
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nama institusi wajib diisi.'), findsOneWidget);
+      expect(find.text('Tahun Mulai wajib diisi.'), findsOneWidget);
+      expect(find.text('Tahun Selesai wajib diisi.'), findsOneWidget);
+      expect(find.text('Kurikulum wajib diisi.'), findsOneWidget);
+      expect(find.text('Deskripsi pendidikan wajib diisi.'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await tester.enterText(fields.at(0), '   ');
+      await tester.enterText(fields.at(1), 'abc');
+      await tester.enterText(fields.at(2), '2022');
+      await tester.enterText(fields.at(3), '   ');
+      await tester.enterText(fields.at(4), '   ');
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nama institusi wajib diisi.'), findsOneWidget);
+      expect(
+        find.text('Tahun Mulai harus berupa bilangan bulat.'),
+        findsOneWidget,
+      );
+      expect(find.text('Kurikulum wajib diisi.'), findsOneWidget);
+      expect(find.text('Deskripsi pendidikan wajib diisi.'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await tester.enterText(fields.at(0), 'Universitas Indonesia');
+      await tester.enterText(fields.at(1), '2025');
+      await tester.enterText(fields.at(2), '2022');
+      await tester.enterText(fields.at(3), 'Ilmu Komputer');
+      await tester.enterText(
+        fields.at(4),
+        'Belajar dan mengembangkan teknologi.',
+      );
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Tahun Mulai tidak boleh melebihi Tahun Selesai.'),
+        findsOneWidget,
+      );
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await tester.enterText(fields.at(1), '2020');
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      final dialog = find.byType(AlertDialog);
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Ringkasan Pendidikan'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Universitas Indonesia'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dialog, matching: find.text('2020')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dialog, matching: find.text('2022')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: dialog, matching: find.text('Ilmu Komputer')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.text('Belajar dan mengembangkan teknologi.'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Tutup'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Tambah Pendidikan'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
