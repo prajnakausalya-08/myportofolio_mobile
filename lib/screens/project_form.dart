@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 
 class ProjectFormPage extends StatefulWidget {
@@ -16,7 +16,11 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
   String _technologies = '';
   String _projectLink = '';
   final List<String> _categories = [
-    'Web Development', 'Mobile Development', 'Machine Learning', 'Data Science', 'Other',
+    'Web Development',
+    'Mobile Development',
+    'Machine Learning',
+    'Data Science',
+    'Other',
   ];
 
   @override
@@ -37,41 +41,77 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  decoration: InputDecoration(hintText: 'Nama Proyek', labelText: 'Nama Proyek', border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0))),
+                  decoration: InputDecoration(
+                    hintText: 'Nama Proyek',
+                    labelText: 'Nama Proyek',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
                   onChanged: (value) {
                     setState(() {
                       _projectName = value;
                     });
                   },
-                  validator: (value) => value == null || value.trim().isEmpty ? 'Nama proyek tidak boleh kosong!' : null,
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Nama proyek tidak boleh kosong!'
+                      : null,
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   maxLines: 5,
-                  decoration: InputDecoration(hintText: 'Deskripsi Proyek', labelText: 'Deskripsi Proyek', border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0))),
+                  decoration: InputDecoration(
+                    hintText: 'Deskripsi Proyek',
+                    labelText: 'Deskripsi Proyek',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
                   onChanged: (value) {
                     setState(() {
                       _description = value;
                     });
                   },
-                  validator: (value) => value == null || value.trim().isEmpty ? 'Deskripsi proyek tidak boleh kosong!' : null,
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Deskripsi proyek tidak boleh kosong!'
+                      : null,
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
                   initialValue: _category,
-                  decoration: InputDecoration(labelText: 'Kategori Proyek', border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0))),
-                  items: _categories.map((category) => DropdownMenuItem(value: category, child: Text(category))).toList(),
-                  onChanged: (value) { if (value != null) setState(() => _category = value); },
+                  decoration: InputDecoration(
+                    labelText: 'Kategori Proyek',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  items: _categories
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) setState(() => _category = value);
+                  },
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  decoration: InputDecoration(hintText: 'Contoh: Flutter, Django, Figma', labelText: 'Teknologi yang Digunakan', border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0))),
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Flutter, Django, Figma',
+                    labelText: 'Teknologi yang Digunakan',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
                   onChanged: (value) {
                     setState(() {
                       _technologies = value;
@@ -82,7 +122,13 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  decoration: InputDecoration(hintText: 'URL Proyek (opsional)', labelText: 'Tautan Proyek', border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0))),
+                  decoration: InputDecoration(
+                    hintText: 'URL Proyek (opsional)',
+                    labelText: 'Tautan Proyek',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
                   onChanged: (value) {
                     setState(() {
                       _projectLink = value;
@@ -95,7 +141,10 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                    ),
                     onPressed: () {
                       if (_formKey.currentState?.validate() != true) return;
                       showDialog<void>(
