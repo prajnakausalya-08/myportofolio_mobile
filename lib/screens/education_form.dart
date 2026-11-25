@@ -1,5 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/providers/auth_state.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/utils/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
 
 class EducationFormPage extends StatefulWidget {
   const EducationFormPage({super.key});
@@ -21,6 +25,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
   String _endYear = '';
   String _curriculum = '';
   String _description = '';
+  bool _isSubmitting = false;
 
   int get _latestReasonableYear => DateTime.now().year + 10;
 
@@ -99,9 +104,52 @@ class _EducationFormPageState extends State<EducationFormPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Tutup'),
           ),
+          FilledButton.icon(
+            onPressed: _isSubmitting
+                ? null
+                : () async {
+                    Navigator.pop(dialogContext);
+                    await _submitEducation();
+                  },
+            icon: const Icon(Icons.cloud_upload_outlined),
+            label: const Text('Kirim ke server'),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _submitEducation() async {
+    final loggedIn = await ensureLoggedIn(context);
+    if (!loggedIn || !mounted) return;
+
+    final authState = context.read<AuthState>();
+    final token = authState.token;
+    if (token == null) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      await context.read<ApiClient>().createEducation(
+        token: token,
+        school: _school.trim(),
+        startYear: int.parse(_startYear.trim()),
+        endYear: int.parse(_endYear.trim()),
+        curriculum: _curriculum.trim(),
+        description: _description.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pendidikan berhasil ditambahkan.')),
+      );
+      Navigator.of(context).pop(true);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      if (error.statusCode == 401) authState.clearInvalidToken();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   InputDecoration _fieldDecoration(String label, {String? hint}) {
@@ -192,7 +240,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: _saveEducation,
+                  onPressed: _isSubmitting ? null : _saveEducation,
                   icon: const Icon(Icons.save_outlined),
                   label: const Text('Simpan'),
                   style: ElevatedButton.styleFrom(
